@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0" />
+<title>Webtest.app - Testing websites with and without adblocker</title>
+<meta name="robots" content="index,follow" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Webtest.app - Testing websites with and without adblocker">
+<meta property="og:description" content="A website speed test tool to compare uBlock Origin with plain Chrome. Check the weight of your ad implementation. Please consider the environment before loading a bunch of ads on your website.">
+<meta property="og:image" content="https://webtest.app/website-speed-test.png">
+
+<link rel="stylesheet" href="/webtest.css">
+
+<meta name="description" content="A website speed test tool to compare uBlock Origin with plain Chrome. Check the weight of your ad implementation. Please consider the environment before loading a bunch of ads on your website." />
+</head>
+<body>
+<div id="header">
+	<header class="content">
+		<h1><a href="/">Website Speed Test</a><br/><span class="subtitle">With &amp; Without Ad Blocker</span></h1>
+		<h2>Check out some of the tested websites</h2>
+	</header>
+</div>
+
+<div class="content">
+	<table id="list">
+		<thead><tr><th class="url">URL</th><th></th><th>Chrome</th><th>uBO</th></tr></thead>
+		<tbody id="list"></tbody>
+	</table>
+</div>
+
+<script>
+
+var list = document.querySelector('#list tbody');
+
+fetch('/service/list').then(function(response){
+	return response.json();
+}).then(function(json){
+	for( url in json ){
+		if( !json[url].Normal || !json[url].uBlock ){
+			continue;
+		}
+		list.innerHTML += '<tr><td class="url" rowspan="2">' + 
+				'<a href="/?url=' + url + '">' + url.replace('https://', '') + 
+			'</td>' + 
+			'<td>Requests</td><td class="value">' + json[url].Normal.requests + '</td><td class="value">' + json[url].uBlock.requests + '</td></tr>' + 
+			'<tr><td>Cookies</td><td class="value">' + json[url].Normal.cookies + '</td><td class="value">' + json[url].uBlock.cookies + '</td></tr>' + 
+			'<tr><td colspan="4" class="separator"></td></tr>' + 
+		'</a>';
+	}
+});
+</script>
+</body>
+</html>

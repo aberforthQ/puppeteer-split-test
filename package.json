@@ -1,0 +1,18 @@
+{
+  "name": "puppeteer-test",
+  "version": "1.0.0",
+  "description": "Puppeteer test",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.17.1",
+    "puppeteer-core": "^1.19.0",
+    "redis": "^2.8.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC"
+}

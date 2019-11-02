@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head prefix="og: http://ogp.me/ns/website#">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0" />
+<title>Webtest.app - Testing websites with and without adblocker</title>
+<meta name="robots" content="index,follow" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Webtest.app - Testing websites with and without adblocker">
+<meta property="og:description" content="A website speed test tool to compare uBlock Origin with plain Chrome. Check the weight of your ad implementation. Please consider the environment before loading a bunch of ads on your website.">
+<meta property="og:image" content="https://webtest.app/website-speed-test.png">
+<meta property="og:url" content="https://webtest.app">
+
+<link rel="stylesheet" href="/webtest.css">
+
+<meta name="description" content="A website speed test tool to compare uBlock Origin with plain Chrome. Check the weight of your ad implementation. Please consider the environment before loading a bunch of ads on your website." />
+</head>
+<body>
+<div id="header">
+	<header class="content">
+		<h1><a href="/">Website Speed Test</a><br/><span class="subtitle">With &amp; Without Ad Blocker</span></h1>
+		<h2>Find out how much overhead your ad implementation adds to your website</h2>
+	</header>
+	<form id="urlForm" class="content">
+		<input id="url" type="url" name="url" value="https://" required />
+		<input type="submit" value="Test" />
+	</form>
+</div>
+
+<div class="content">
+
+	<div id="resultsWrapper">
+		<div id="status"></div>
+		<div class="loader"></div>
+		<div class="column">
+			<h4>Chrome</h4>
+			<div id="screenshotNormal" class="screenshot"></div>
+			<div id="resultsNormal" class="results"></div>
+		</div>
+		<div class="column">
+			<h4>uBlock Origin</h4>
+			<div id="screenshotuBlock" class="screenshot"></div>
+			<div id="resultsuBlock" class="results"></div>
+		</div>
+
+		<div style="clear:both;"></div>
+
+		<div class="column">
+			<h3>Cookies per domain</h3>
+			<table class="advanced"><tbody id="cookiesNormal"></tbody></table>
+		</div>
+		<div class="column">
+			<h3>Cookies per domain</h3>
+			<table class="advanced"><tbody id="cookiesuBlock"></tbody></table>
+		</div>
+		<div style="clear:both;"></div>
+		<div class="column">
+			<h3>Advanced metrics</h3>
+			<table class="advanced"><tbody id="advancedNormal"></tbody></table>
+		</div>
+		<div class="column">
+			<h3>Advanced metrics</h3>
+			<table class="advanced"><tbody id="advanceduBlock"></tbody></table>
+		</div>
+	</div>
+
+	<div style="clear:both;"></div>
+
+	<h3>How does this work?</h3>
+	<p>This service visits the URL you enter and gives you various statistics about the website. There are many speedtest tools out there, but this speedtest has one unique feature: For one visit it's just running Chrome normally. For the other we still use Chrome, but then with the uBlock Origin extension loaded.</p>	
+	<p>Are you looking for some examples? Check a random selection of 
+		<a href="/list.html">URLs that have been tested.</a>
+	</p>
+	<p>Don't just test the homepage of a website. Definitely try sub pages like articles etc.</p>
+
+	<h3>Warning: pre-alpha state</h3>
+	<p>This service is in a pre-alpha state and might crash, or the queue can fill up when everybody is testing. The queue is sometimes cleaned up. You can always give it a try :-).</p>
+
+	<h3>It looks like websites download a lot of stuff I don't need!</h3>
+	<p>Yes, that's what you get for not using an ad blocker.</p>
+
+	<h3 id="energy">How is energy consumption measured?</h3>
+	<p>For now this test only displays the estimated Watt Hour for transferring the bytes of the web page. 
+	<a href="https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.12630" target="_blank">Source</a>. 
+	Data transfer is not all it takes to run ads, there is also data crunching happening on servers and rendering of the ads on clients.</p>
+
+	<h3>What technology is used?</h3>
+	<p>This service uses nginx, node, puppeteer, redis, chrome on a xvfb display and of course ublock origin.
+	For now only the default filters are enabled for uBlock Origin. Xvfb is needed because headless chrome cannot load plugins. 
+	Firefox support might be supported in the future. Git repos coming up soon.</p>
+
+	<h3>Is this an alternative to pingdom or dotcom tools?</h3>
+	<p>No, please use their services to test your website speed. Use this service to test your ad implementation, 
+	or as proof to others they should use an ad blocker.</p>
+
+	<h3>This service needs a slogan, a better title and more exciting explanation.</h3>
+	<p>If you want to help, please <a href="https://news.ycombinator.com/item?id=21052969" target"_blank">join on HN</a>.</p>
+	<p>What about: please consider the environment before loading a bunch of ads on your website.</p>
+	<p>Check the weight of your ad implementation.</p>
+
+	<h3>Contact</h3>
+	<p>aberforthqueensalad 🍊 protonmail 🍋 com</p>
+
+</div>
+
+<script>
+var fields = ['Requests', 'Blocked requests', 'Cookies', 'Page size', 'iFrames', 'DomContentLoaded', 'ProcessingTime', 'Load time'],
+	resultColumns = {
+		Normal: document.querySelector('#resultsNormal'), 
+		uBlock: document.querySelector('#resultsuBlock')
+	},
+	screenshotElements = {
+		Normal: document.querySelector('#screenshotNormal'), 
+		uBlock: document.querySelector('#screenshotuBlock')
+	},
+	advancedElements = {
+		Normal: document.querySelector('#advancedNormal'),
+		uBlock: document.querySelector('#advanceduBlock')
+	},
+	cookieElements = {
+		Normal: document.querySelector('#cookiesNormal'),
+		uBlock: document.querySelector('#cookiesuBlock')
+	},
+	urlForm = document.querySelector('#urlForm');
+
+function cleanup(){
+
+}
+
+function submitForm(callback){
+	var url = document.querySelector('#url').value;
+
+	document.querySelector('#resultsWrapper').style.visibility = 'visible';
+	document.querySelector('.loader').style.display = 'block';
+
+	for( r in resultColumns ){
+		resultColumns[r].innerHTML = '';
+		screenshotElements[r].innerHTML = '';
+		advancedElements[r].innerHTML = '';
+		cookieElements[r].innerHTML = '';
+	}
+
+	urlForm.style.display = 'none';
+
+	function poll(){
+		fetch('/service/status?parm=' + encodeURIComponent(url)).then(function(response){
+			return response.json();
+		}).then(function(json){	
+
+			if( json.status ){
+				document.querySelector('#status').innerText = 'status: ' + json.status;	
+				if( json.status == 'queued' ){
+					setTimeout(poll, 1000);
+					return;
+				} else if( json.status == 'error' ){
+
+					document.querySelector('.loader').style.display = 'none';
+					urlForm.style.display = 'block';
+					return;
+				}
+			} else {
+				document.querySelector('#status').innerText = '';
+			}
+
+			for( variant in json ){
+				resultColumns[variant].innerHTML = '';
+
+				if( json[variant].Screenshot != undefined && screenshotElements[variant].innerHTML == '' ){
+					screenshotElements[variant].innerHTML = '<a href="' + json[variant].Screenshot + '" target="_blank"><img src="' + json[variant].Screenshot + '" width="100%" /></a>';
+					document.body.className = 'has-screenshot';
+				}
+
+				for( f in fields ){
+					resultColumns[variant].innerHTML += '<div>:title:<br/><b>:val:</b></div>'
+						.replace(':val:', json[variant][fields[f]] ? json[variant][fields[f]].human : '-')
+						.replace(':title:', fields[f]);
+
+					if( fields[f] == 'Page size' && json[variant][fields[f]] ){
+						var amazingMathematics = json[variant][fields[f]].value / 1024 / 1024 / 1024 * 0.06 * 1000;
+						resultColumns[variant].innerHTML += '<div class="energy">Energy used<br/>' + 
+							'<b>:val: Wh</b> <br/><a href="#energy">more info</a></div>'
+							.replace(':val:', amazingMathematics.toFixed(3));
+					}
+				}	
+
+				advancedElements[variant].innerHTML = '';
+				for( m in json[variant].Metrics ){
+					advancedElements[variant].innerHTML += '<tr><td>' + m + '</td><td>' 
+						+ json[variant].Metrics[m] + '</td></tr>';
+				}
+
+				cookieElements[variant].innerHTML = '';
+				for( m in json[variant].CookieDomains ){
+					cookieElements[variant].innerHTML += '<tr><td>' + m + '</td><td>' 
+						+ json[variant].CookieDomains[m] + '</td></tr>';
+				}
+			}
+
+			if( json.Normal == undefined || json.uBlock == undefined || json.Normal['Done'] == undefined || json.uBlock['Done'] == undefined ){
+				setTimeout(poll, 1000);
+			} else {
+				document.querySelector('.loader').style.display = 'none';
+				urlForm.style.display = 'block';
+			}
+		});
+	}
+	fetch('/service/add?parm=' + encodeURIComponent(url)).then(function(){
+		poll();
+		if( callback ){
+			callback();
+		}
+	});
+}
+
+function checkParams(){
+	if( location.search.indexOf('?url=') >= 0 ){
+		var url = decodeURIComponent(location.search.replace(/^\?url=/, ''));
+		if( url.indexOf('?') == -1 ){
+			url = url.replace(/&.*$/, '');
+		}
+		document.querySelector('#url').value = url;
+		submitForm();
+	}
+}
+checkParams();
+
+var first = true;
+urlForm.addEventListener('submit', function(e){
+	e.preventDefault();
+	submitForm(function(){
+		var url = document.querySelector('#url').value;
+		if( first ){
+			history.replaceState({}, document.title, '?url=' + url);
+		} else {
+			history.pushState({}, document.title, '?url=' + url);
+		}
+		first = false;
+	});
+});
+
+window.onpopstate = function(){
+	if( location.search.length > 2 ){
+		checkParams();
+	} else {
+		cleanup();
+	}
+};
+
+</script>
+
+</body>
+</html>
