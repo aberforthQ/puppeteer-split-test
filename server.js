@@ -3,7 +3,7 @@ const redis = require('redis').createClient();
 const mysql = require('mysql').createConnection({
 	host: 'localhost',
 	user: 'webtest',
-	password: '!WebTest(12',
+	password: '!WebTest(12', // No worries :-)
 	database: 'webtest'
 });
 
